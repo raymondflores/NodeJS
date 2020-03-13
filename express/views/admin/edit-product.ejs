@@ -6,7 +6,7 @@
     <%- include ('../includes/nav.ejs') %>
 
     <main>
-      <form class="product-form" action="/admin/<% if (editing) { %>edit-product<% } else { %>add-roduct<% } %>" method="POST">
+      <form class="product-form" action="/admin/<% if (editing) { %>edit-product<% } else { %>add-product<% } %>" method="POST">
         <div class="form-control">
           <label for="title">Title</label>
           <input type="text" name="title" id="title" value="<% if (editing) { %><%= product.title %><% } %>"/>
@@ -23,6 +23,9 @@
           <label for="description">Description</label>
           <textarea rows="5" name="description" id="description"><% if (editing) { %><%= product.description %><% } %></textarea>
         </div>
+        <% if (editing) { %>
+          <input type="hidden" name="productId" value="<%= product.id %>">
+        <% } %>
         <button type="submit"><% if (editing) { %>Update Product<% } else { %>Add Product<% } %></button>
       </form>
     </main>

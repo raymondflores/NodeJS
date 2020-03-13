@@ -1,41 +1,61 @@
 const Product = require('../models/product');
 const Cart = require('../models/cart');
 
-exports.getProducts = (req, res) => {
-  Product.fetchAll(products => {
+exports.getProducts = async (req, res) => {
+  try {
+    const [products] = await Product.fetchAll();
     res.render('shop/product-list', {
       products,
       title: 'All Products',
       path: '/products'
     });
-  });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-exports.getProduct = (req, res) => {
-  const { productId } = req.params;
-  Product.findById(productId, product => {
+exports.getProduct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const [[product]] = await Product.findById(productId);
     res.render('shop/product-detail', {
       product,
       title: product.title,
       path: '/products'
     });
-  });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-exports.getIndex = (req, res) => {
-  Product.fetchAll(products => {
+exports.getIndex = async (req, res) => {
+  try {
+    const [products] = await Product.fetchAll();
     res.render('shop/index', {
       products,
       title: 'Shop',
       path: '/'
     });
-  });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 exports.getCart = (req, res) => {
-  res.render('shop/cart', {
-    path: '/cart',
-    title: 'Your Cart'
+  Cart.getCart(cart => {
+    Product.fetchAll(products => {
+      const cartProducts = products
+        .filter(p => cart.products.find(cp => cp.id === p.id))
+        .map(p => {
+          const product = cart.products.find(cp => cp.id === p.id);
+          return { ...product, ...p };
+        });
+      res.render('shop/cart', {
+        path: '/cart',
+        title: 'Your Cart',
+        products: cartProducts
+      });
+    });
   });
 };
 
@@ -45,6 +65,14 @@ exports.postCart = (req, res) => {
     Cart.addProduct(productId, product.price);
   });
   res.redirect('/cart');
+};
+
+exports.postDeleteCartProduct = (req, res) => {
+  const { productId } = req.body;
+  Product.findById(productId, product => {
+    Cart.deleteProduct(productId, product.price);
+    res.redirect('/cart');
+  });
 };
 
 exports.getOrders = (req, res) => {

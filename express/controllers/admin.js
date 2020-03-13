@@ -8,11 +8,15 @@ exports.getAddProduct = (req, res) => {
   });
 };
 
-exports.postAddProduct = (req, res) => {
-  const { title, imageUrl, description, price } = req.body;
-  const product = new Product(title, imageUrl, description, price);
-  product.save();
-  res.redirect('/');
+exports.postAddProduct = async (req, res) => {
+  try {
+    const { title, imageUrl, description, price } = req.body;
+    const product = new Product(null, title, imageUrl, description, price);
+    await product.save();
+    res.redirect('/');
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 exports.getEditProduct = (req, res) => {
@@ -32,7 +36,12 @@ exports.getEditProduct = (req, res) => {
   });
 };
 
-exports.postEditProduct = (req, res) => {};
+exports.postEditProduct = (req, res) => {
+  const { productId, title, price, imageUrl, description } = req.body;
+  const product = new Product(productId, title, imageUrl, description, price);
+  product.save();
+  res.redirect('/admin/products');
+};
 
 exports.getProducts = (req, res) => {
   Product.fetchAll(products => {
@@ -42,4 +51,10 @@ exports.getProducts = (req, res) => {
       path: '/admin/products'
     });
   });
+};
+
+exports.deleteProduct = (req, res) => {
+  const { productId } = req.body;
+  Product.deleteById(productId);
+  res.redirect('/admin/products');
 };
