@@ -1,14 +1,12 @@
 const Product = require('../models/product');
-const Order = require('../models/order');
 
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.fetchAll();
     res.render('shop/product-list', {
       products,
       title: 'All Products',
-      path: '/products',
-      isAuthenticated: req.session.isLoggedIn
+      path: '/products'
     });
   } catch (err) {
     console.log(err);
@@ -22,8 +20,7 @@ exports.getProduct = async (req, res) => {
     res.render('shop/product-detail', {
       product,
       title: product.title,
-      path: '/products',
-      isAuthenticated: req.session.isLoggedIn
+      path: '/products'
     });
   } catch (err) {
     console.log(err);
@@ -32,12 +29,11 @@ exports.getProduct = async (req, res) => {
 
 exports.getIndex = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.fetchAll();
     res.render('shop/index', {
       products,
       title: 'Shop',
-      path: '/',
-      isAuthenticated: req.session.isLoggedIn
+      path: '/'
     });
   } catch (err) {
     console.log(err);
@@ -46,12 +42,11 @@ exports.getIndex = async (req, res) => {
 
 exports.getCart = async (req, res) => {
   try {
-    const user = await req.user.populate('cart.items.productId').execPopulate();
+    const products = await req.user.getCart();
     res.render('shop/cart', {
       path: '/cart',
       title: 'Your Cart',
-      products: user.cart.items,
-      isAuthenticated: req.session.isLoggedIn
+      products
     });
   } catch (err) {
     console.log(err);
@@ -72,7 +67,8 @@ exports.postCart = async (req, res) => {
 exports.postDeleteCartProduct = async (req, res) => {
   try {
     const { productId } = req.body;
-    await req.user.removeFromCart(productId);
+    await req.user.deleteItemFromCart(productId);
+
     res.redirect('/cart');
   } catch (err) {
     console.log(err);
@@ -81,13 +77,11 @@ exports.postDeleteCartProduct = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ 'user.userId': req.user._id });
-    console.log(orders);
+    const orders = await req.user.getOrders();
     res.render('shop/orders', {
       path: '/orders',
       title: 'Your Orders',
-      orders,
-      isAuthenticated: req.session.isLoggedIn
+      orders
     });
   } catch (err) {
     console.log(err);
@@ -96,20 +90,7 @@ exports.getOrders = async (req, res) => {
 
 exports.postOrder = async (req, res) => {
   try {
-    const user = await req.user.populate('cart.items.productId').execPopulate();
-    const products = user.cart.items.map(item => ({
-      product: { ...item.productId._doc },
-      quantity: item.quantity
-    }));
-    const order = new Order({
-      user: {
-        name: req.user.name,
-        userId: req.user
-      },
-      products
-    });
-    await order.save();
-    await req.user.clearCart();
+    await req.user.addOrder();
     res.redirect('/orders');
   } catch (err) {
     console.log(err);
@@ -119,7 +100,6 @@ exports.postOrder = async (req, res) => {
 exports.getCheckout = (req, res) => {
   res.render('shop/cart', {
     path: '/checkout',
-    title: 'Checkout',
-    isAuthenticated: req.session.isLoggedIn
+    title: 'Checkout'
   });
 };
