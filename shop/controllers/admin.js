@@ -4,8 +4,7 @@ exports.getAddProduct = (req, res) => {
   res.render('admin/edit-product', {
     title: 'Add Product',
     path: '/admin/add-product',
-    editing: false,
-    isAuthenticated: req.session.isLoggedIn
+    editing: false
   });
 };
 
@@ -39,8 +38,7 @@ exports.getEditProduct = async (req, res) => {
       title: 'Edit Product',
       path: '/admin/edit-product',
       editing: edit,
-      product,
-      isAuthenticated: req.session.isLoggedIn
+      product
     });
   } catch (err) {
     console.log(err);
@@ -51,6 +49,9 @@ exports.postEditProduct = async (req, res) => {
   try {
     const { productId, title, price, imageUrl, description } = req.body;
     const product = await Product.findById(productId);
+
+    if (product.userId.toString() !== req.user._id.toString())
+      return res.redirect('/');
 
     product.title = title;
     product.price = price;
@@ -65,20 +66,22 @@ exports.postEditProduct = async (req, res) => {
 };
 
 exports.getProducts = async (req, res) => {
-  const products = await Product.find();
-  console.log(products);
-  res.render('admin/products', {
-    products,
-    title: 'Admin Products',
-    path: '/admin/products',
-    isAuthenticated: req.session.isLoggedIn
-  });
+  try {
+    const products = await Product.find({ userId: req.user._id });
+    res.render('admin/products', {
+      products,
+      title: 'Admin Products',
+      path: '/admin/products'
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 exports.deleteProduct = async (req, res) => {
   try {
     const { productId } = req.body;
-    await Product.findByIdAndRemove(productId);
+    await Product.deleteOne({ _id: productId, userId: req.user._id });
     res.redirect('/admin/products');
   } catch (err) {
     console.log(err);
