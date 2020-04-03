@@ -1,16 +1,32 @@
+const { validationResult } = require('express-validator/check');
+
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res) => {
   res.render('admin/edit-product', {
     title: 'Add Product',
     path: '/admin/add-product',
-    editing: false
+    editing: false,
+    hasError: false,
+    errorMessage: null
   });
 };
 
 exports.postAddProduct = async (req, res) => {
   try {
     const { title, price, description, imageUrl } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).render('admin/edit-product', {
+        title: 'Add Product',
+        path: '/admin/add-product',
+        editing: false,
+        hasError: true,
+        errorMessage: errors.array()[0].msg,
+        product: { title, price, description, imageUrl },
+        validationErrors: errors.array()
+      });
+
     const product = new Product({
       title,
       price,
@@ -38,7 +54,9 @@ exports.getEditProduct = async (req, res) => {
       title: 'Edit Product',
       path: '/admin/edit-product',
       editing: edit,
-      product
+      product,
+      hasError: false,
+      errorMessage: null
     });
   } catch (err) {
     console.log(err);
