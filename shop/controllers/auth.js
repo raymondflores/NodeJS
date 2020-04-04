@@ -3,14 +3,13 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 const { validationResult } = require('express-validator/check');
-const config = require('../config.json');
 
 const User = require('../models/user');
 
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
-      api_key: config.sendGridKey
+      api_key: process.env.SENDGRID_KEY
     }
   })
 );
@@ -26,7 +25,7 @@ exports.getLogin = (req, res) => {
   });
 };
 
-exports.postLogin = async (req, res) => {
+exports.postLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const errors = validationResult(req);
@@ -66,7 +65,9 @@ exports.postLogin = async (req, res) => {
         validationErrors: []
       });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    next(err);
   }
 };
 
@@ -81,7 +82,7 @@ exports.getSignup = (req, res) => {
   });
 };
 
-exports.postSignup = async (req, res) => {
+exports.postSignup = async (req, res, next) => {
   try {
     const { email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
@@ -110,7 +111,9 @@ exports.postSignup = async (req, res) => {
       html: '<h1>You successfully signed up!</h1>'
     });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    next(err);
   }
 };
 
@@ -130,7 +133,7 @@ exports.getResetPassword = (req, res) => {
   });
 };
 
-exports.postResetPassword = (req, res) => {
+exports.postResetPassword = (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -164,11 +167,13 @@ exports.postResetPassword = (req, res) => {
       });
     });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    next(err);
   }
 };
 
-exports.getNewPassword = async (req, res) => {
+exports.getNewPassword = async (req, res, next) => {
   try {
     const [errorMessage] = req.flash('error');
     const { token } = req.params;
@@ -186,11 +191,13 @@ exports.getNewPassword = async (req, res) => {
       passwordToken: token
     });
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    next(err);
   }
 };
 
-exports.postNewPassword = async (req, res) => {
+exports.postNewPassword = async (req, res, next) => {
   try {
     const { password, userId, passwordToken } = req.body;
     const user = await User.findOne({
@@ -206,6 +213,8 @@ exports.postNewPassword = async (req, res) => {
     await user.save();
     res.redirect('/login');
   } catch (err) {
-    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    next(err);
   }
 };
