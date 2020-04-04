@@ -1,3 +1,5 @@
 node_modules
 .DS_Store
 shop/.env
+shop/data/invoices
+shop/images
