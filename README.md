@@ -3,17 +3,17 @@
 Node.js projects &amp; examples
 
 
-# Shop
+## Shop
 An ecommerce site built in node.js
 
-# express-templates
+## express-templates
 examples of using different view engines
 
-# shop-mongodb
+## shop-mongodb
 ecommerce site using mongodb
 
-# shop-mysql-sequelize
+## shop-mysql-sequelize
 ecommerce site using mysql and sequelize
 
-# vanilla-nodejs
+## vanilla-nodejs
 a node server using vanilla node
