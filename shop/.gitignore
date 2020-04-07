@@ -1,0 +1,9 @@
+.env
+node_modules
+images/*
+data
+.DS_Store
+images/*
+!images/.keep
+data/invoices/*
+!data/invoices/.keep
